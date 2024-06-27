@@ -1,1 +1,36 @@
+# WL Code
+import pandas as pd
+import numpy as np
 
+def handeyetogether(urlhand, urleye, windowlength):
+  eye_data=pd.read_excel(urleye)
+  hand_data=pd.read_excel(urlhand)
+  eye=eye_data.copy()
+  hand=hand_data.copy()
+  np.array(eye)
+  np.array(hand)
+  starttime= min(np.min(hand['start']), np.min(eye['start']))
+  hand['start']+=-starttime
+  hand['end']+=-starttime
+  eye['start']+=-starttime
+  eye['end']+=-starttime
+  endtime=max(np.max(hand['start']), np.max(eye['start']))
+  intervals=int(endtime//windowlength)
+  currenttime=0
+  eyearray=np.zeros((intervals, 2))
+  handarray=np.zeros((intervals, 2))
+  for i in range(eye.shape[0]-1):
+    for j in range(int(eye.loc[i].start//windowlength), int(eye.loc[i+1].start//windowlength)):
+      eyearray[j][0]=eye.loc[i].x
+      eyearray[j][1]=eye.loc[i].y
+  for k in range(int(eye.loc[eye.shape[0]-1].start//windowlength), intervals):
+    eyearray[k][0]=eye.loc[eye.shape[0]-1].x
+    eyearray[k][1]=eye.loc[eye.shape[0]-1].y
+  for l in range(hand.shape[0]-1):
+    for m in range(int(hand.loc[l].start//windowlength), int(hand.loc[l+1].start//windowlength)):
+      handarray[m][0]=hand.loc[l].x
+      handarray[m][1]=hand.loc[l].y
+  for n in range(int(hand.loc[hand.shape[0]-1].start//windowlength), intervals):
+    handarray[n][0]=hand.loc[hand.shape[0]-1].x
+    handarray[n][1]=hand.loc[hand.shape[0]-1].y
+  return eyearray, handarray
