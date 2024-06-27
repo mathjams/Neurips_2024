@@ -15,37 +15,6 @@ drive.mount('/content/drive')
 
 """
 
-import pandas as pd
-import numpy as np
-
-def generate_sequences_together(user_type,win_len):
-  resulteye=[]
-  resulthand=[]
-  maxlen=0
-  eye_basic_url='/content/drive/My Drive/data_set/Eye_'
-  hand_basic_url='/content/drive/My Drive/data_set/Hand_'
-  if (user_type=='ASD'):
-    numOfUser=9
-    eye_basic_url+="ASD_"
-    hand_basic_url+='ASD_'
-  else:
-    eye_basic_url+="TD_"
-    hand_basic_url+='TD_'
-    numOfUser=17
-  for i in range(1, numOfUser+1):
-    for j in range(0,2):
-      c_eye_url=eye_basic_url+'U'+str(i)+"_Active_"+str(j)+".xlsx"
-      c_hand_url=hand_basic_url+'U'+str(i)+"_Active_"+str(j)+".xlsx"
-      #asd_eye_data=pd.DataFrame()
-      try:
-        dataeye, datahand =handeyetogether(c_hand_url, c_eye_url, win_len)
-        resulteye.append(dataeye)
-        resulthand.append(datahand)
-        if len(dataeye)>maxlen or len(datahand)>maxlen:
-          maxlen=max(len(dataeye), len(datahand))
-      except IOError:
-        print("")
-  return resulteye, resulthand, maxlen
 
 """simply putting the x and y into the LSTM"""
 
