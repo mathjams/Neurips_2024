@@ -12,23 +12,6 @@ Original file is located at
 from google.colab import drive
 drive.mount('/content/drive')
 
-import pandas as pd
-import numpy as np
-eye_data=pd.read_excel("/content/drive/My Drive/data_set/Eye_ASD_U8_Active_0.xlsx")
-hand_data=pd.read_excel("/content/drive/My Drive/data_set/Hand_ASD_U8_Active_0.xlsx")
-eye=eye_data.copy()
-hand=hand_data.copy()
-np.array(eye)
-np.array(hand)
-starttime= min(np.min(hand['start']), np.min(eye['start']))
-hand['start']+=-starttime
-hand['end']+=-starttime
-eye['start']+=-starttime
-eye['end']+=-starttime
-print(eye)
-print(hand)
-
-eye
 
 """**handeyetogether** takes a hand and eye file, and take a certain time window. Then, it splits the entire series of time and splits it up into these windows. After, it looks at what position the most recent fixations for the eyes/hands are and fills in the interval using this."""
 
@@ -50,11 +33,8 @@ def handeyetogether(urlhand, urleye, windowlength):
   endtime=max(np.max(hand['start']), np.max(eye['start']))
   intervals=int(endtime//windowlength)
   currenttime=0
-#  eyehandarray=[[0,0,0,0]]
   eyearray=np.zeros((intervals, 2))
   handarray=np.zeros((intervals, 2))
-#  for a in range(intervals-1):
-#    eyehandarray = np.append(eyehandarray, [[0,0,0,0]], axis=0)
   for i in range(eye.shape[0]-1):
     for j in range(int(eye.loc[i].start//windowlength), int(eye.loc[i+1].start//windowlength)):
       eyearray[j][0]=eye.loc[i].x
@@ -70,7 +50,6 @@ def handeyetogether(urlhand, urleye, windowlength):
     handarray[n][0]=hand.loc[hand.shape[0]-1].x
     handarray[n][1]=hand.loc[hand.shape[0]-1].y
   return eyearray, handarray
-print(handeyetogether('/content/drive/My Drive/data_set/Eye_TD_U1_Active_1.xlsx', '/content/drive/My Drive/data_set/Hand_TD_U1_Active_1.xlsx', 10000))
 
 """**LSTM model** used for taking the eye and hand data, used for predicting the next hand fixation"""
 
@@ -84,12 +63,6 @@ def LSTM_model(input, output, max_len, number_of_features,number_of_epochs):
   max_sequence_len = max_len
   # Flatten all sequences to fit the scaler
   all_data = np.concatenate(input + output, axis=0)
-#  scaler = StandardScaler()
-#  scaler.fit(all_data)
-
-# Apply scaling to each sequence separately
-#  input_data = [scaler.transform(seq) for seq in input]
-#  output_data = [scaler.transform(seq) for seq in output]
 
   input_data_padded = pad_sequences(input, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
   output_data_padded = pad_sequences(output, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
