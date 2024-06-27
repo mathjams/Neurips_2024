@@ -166,60 +166,8 @@ std_asd1 = statistics.pstdev(ASD1)
 std_td1 = statistics.pstdev(TD1)
 print(std_asd1, std_td1)
 
-
-
-
-
-input, output, maxlen=plainsequences('TD')
-GRU_model(input, output, maxlen, 2)
-
-input, output, maxlen=plainsequences('ASD')
-GRU_model(input, output, maxlen, 2)
-
-input, output, maxlen=geneyehandoverlaps('ASD')
-GRU_model(input, output, maxlen, 2)
-
-input, output, maxlen=geneyehandoverlaps('TD')
-GRU_model(input, output, maxlen, 2)
-
-import seaborn as sns
-import pandas as pd
-import matplotlib.pyplot as plt
-
-X=[]
-Ytd=[]
-Yasd=[]
-
-# Show plot
-
-for i in range(1, 20):
-  windowlength=1000*i
-  inputtd, outputtd, max_lentd=generate_sequences_together('TD',windowlength)
-  modeltd, encoder_modeltd, decoder_modeltd, final_losstd = GRU_model(inputtd, outputtd, max_lentd, 2, 30)
-  inputasd, outputasd, max_lenasd=generate_sequences_together('ASD',windowlength)
-  modelasd, encoder_modelasd, decoder_modelasd, final_lossasd=GRU_model(inputasd, outputasd, max_lenasd, 2, 30)
-  X.append(windowlength)
-  Ytd.append(final_losstd)
-  Yasd.append(final_lossasd)
-# Create DataFrame
-
-dataTD = pd.DataFrame({'x': X, 'y': Ytd})
-sns.scatterplot(data=dataTD, x='x', y='y', color='blue')
-dataASD = pd.DataFrame({'x': X, 'y': Yasd})
-sns.scatterplot(data=dataASD, x='x', y='y', color='red')
-
-# Add labels, title, and legend
-plt.xlabel('windowlength')
-plt.ylabel('validation error')
-plt.title('lenth vs validation')
-plt.legend()
-plt.show()
-
-import scipy.stats as stats
-
 ASD1=[]
 TD1=[]
-
 
 for i in range(1, 20):
   inputtd, outputtd, max_lentd=geneyehandoverlaps('TD')
