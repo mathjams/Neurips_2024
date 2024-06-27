@@ -1,1 +1,47 @@
+# LSTM Model
 
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, LSTM, Dense, TimeDistributed, Embedding, Concatenate
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from tensorflow.keras.models import Sequential
+
+from sklearn.preprocessing import StandardScaler
+def LSTM_model(input, output, max_len, number_of_features,number_of_epochs):
+  max_sequence_len = max_len
+  # Flatten all sequences to fit the scaler
+  all_data = np.concatenate(input + output, axis=0)
+
+  input_data_padded = pad_sequences(input, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
+  output_data_padded = pad_sequences(output, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
+
+  decoder_target_data = np.roll(output_data_padded, shift=-1, axis=0)
+  decoder_target_data[:, -1, :] = 0  # Reset last time step to 0 (zero padding)
+  latent_dim = 50
+
+  # Encoder
+  encoder_inputs = Input(shape=(None, number_of_features), name='encoder_inputs')
+  encoder_lstm = LSTM(latent_dim, return_state=True, name='encoder_LSTM')
+  encoder_outputs, state_h, state_c = encoder_lstm(encoder_inputs)
+  encoder_states = [state_h, state_c]
+  encoder_model = Model(encoder_inputs, encoder_states)
+
+# Decoder
+  decoder_inputs = Input(shape=(None, number_of_features), name='decoder_inputs')
+  decoder_lstm = LSTM(latent_dim, return_sequences=True, return_state=True, name='decoder_LSTM')
+  decoder_outputs, state_h_dec, state_c_dec = decoder_lstm(decoder_inputs, initial_state=encoder_states)
+  decoder_states = [state_h_dec, state_c_dec]
+  decoder_dense = Dense(number_of_features)  # Output dimensions are the same as input (x, y coordinates)
+  decoder_outputs = decoder_dense(decoder_outputs)
+  encoder_model = Model(encoder_inputs, encoder_states)
+
+  decoder_model = Model(
+    [decoder_inputs] + encoder_states,
+    [decoder_outputs, state_h_dec, state_c_dec])
+  model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+  model.compile(optimizer='adam', loss='mse')
+#  print(model.summary())
+  result=model.fit([input_data_padded, output_data_padded], decoder_target_data, batch_size=50, epochs=number_of_epochs, validation_split=0.2)
+#  print(result.history)
+  final_loss = result.history['val_loss'][-1]
+  print(final_loss)
+  return model, encoder_model, decoder_model, final_loss
