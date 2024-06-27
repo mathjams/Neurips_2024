@@ -45,3 +45,41 @@ def LSTM_model(input, output, max_len, number_of_features,number_of_epochs):
   final_loss = result.history['val_loss'][-1]
   print(final_loss)
   return model, encoder_model, decoder_model, final_loss
+
+# GRU
+
+from tensorflow.keras.models import Model
+from tensorflow.keras.layers import Input, GRU, Dense, TimeDistributed, Embedding, Concatenate
+from tensorflow.keras.preprocessing.sequence import pad_sequences
+from sklearn.preprocessing import MinMaxScaler
+def GRU_model(input_data, output_data, max_len, number_of_features):
+  max_sequence_len = max_len
+  input_data_padded = pad_sequences(input_data, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
+  output_data_padded = pad_sequences(output_data, maxlen=max_sequence_len, padding='post', dtype='float32', value=0)
+
+  decoder_target_data = np.roll(output_data_padded, shift=-1, axis=0)
+  decoder_target_data[:, -1, :] = 0  # Reset last time step to 0 (zero padding)
+  latent_dim = 50
+
+  # Encoder
+  encoder_inputs = Input(shape=(None, number_of_features), name='encoder_inputs')
+  encoder_gru = GRU(latent_dim, return_state=True)
+  encoder_outputs, state_h = encoder_gru(encoder_inputs)
+  encoder_states = state_h
+
+# Decoder
+  decoder_inputs = Input(shape=(None, number_of_features))
+  decoder_gru = GRU(latent_dim, return_sequences=True)
+  decoder_outputs = decoder_gru(decoder_inputs, initial_state=encoder_states)
+  decoder_dense = Dense(number_of_features, activation='linear')  # Using linear activation function
+  decoder_outputs = decoder_dense(decoder_outputs)
+
+  model = Model([encoder_inputs, decoder_inputs], decoder_outputs)
+
+  model.compile(optimizer='adam', loss='mse')
+ # print(model.summary())
+ # print(model.summary())
+  result=model.fit([input_data_padded, output_data_padded], decoder_target_data, batch_size=50, epochs=30, validation_split=0.2)
+  final_loss = result.history['val_loss'][-1]
+  print(final_loss)
+  return model, final_loss
