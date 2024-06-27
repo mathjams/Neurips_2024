@@ -60,64 +60,6 @@ plt.title('Windowlength vs Error')
 plt.legend()
 plt.show()
 
-"""**eyehandoverlaps** only looks at where the eye and hand fixations overlap"""
-
-def eyehandoverlaps(urleye, urlhand):
-  eye_data=pd.read_excel(urleye)
-  hand_data=pd.read_excel(urlhand)
-  eye=eye_data.copy()
-  hand=hand_data.copy()
-  np.array(eye)
-  np.array(hand)
-  starttime= min(np.min(hand['start']), np.min(eye['start']))
-  hand['start']+=-starttime
-  hand['end']+=-starttime
-  eye['start']+=-starttime
-  eye['end']+=-starttime
-  handarray=np.zeros((0,2))
-  eyearray=np.zeros((0,2))
-  for i in range(eye.shape[0]):
-    for j in range(hand.shape[0]):
-      if max(hand.loc[j].start, eye.loc[i].start)<=min(hand.loc[j].end, eye.loc[i].end):
- #       handeye=np.append(handeye, [[eye.loc[i].x, eye.loc[i].y, hand.loc[j].x, hand.loc[j].y, max(hand.loc[j].start, eye.loc[i].start), min(hand.loc[j].end, eye.loc[i].end) ]], axis=0)
-        eyearray=np.append(eyearray, [[eye.loc[i].x, eye.loc[i].y]], axis=0)
-        handarray=np.append(handarray, [[hand.loc[j].x, hand.loc[j].y]], axis=0)
-  return eyearray, handarray
-eyehandoverlaps('/content/drive/My Drive/data_set/Eye_TD_U1_Active_1.xlsx', '/content/drive/My Drive/data_set/Hand_TD_U1_Active_1.xlsx')
-
-"""**generateeyehandoverlaps** puts all the overlap data into one array to feed into the LSTM"""
-
-import pandas as pd
-import numpy as np
-
-def geneyehandoverlaps(user_type):
-  resulteye=[]
-  resulthand=[]
-  maxlen=0
-  eye_basic_url='/content/drive/My Drive/data_set/Eye_'
-  hand_basic_url='/content/drive/My Drive/data_set/Hand_'
-  if (user_type=='ASD'):
-    numOfUser=9
-    eye_basic_url+="ASD_"
-    hand_basic_url+='ASD_'
-  else:
-    eye_basic_url+="TD_"
-    hand_basic_url+='TD_'
-    numOfUser=17
-  for i in range(1, numOfUser+1):
-    for j in range(0,2):
-      c_eye_url=eye_basic_url+'U'+str(i)+"_Active_"+str(j)+".xlsx"
-      c_hand_url=hand_basic_url+'U'+str(i)+"_Active_"+str(j)+".xlsx"
-      #asd_eye_data=pd.DataFrame()
-      try:
-        dataeye, datahand = eyehandoverlaps(c_eye_url, c_hand_url)
-        resulteye.append(dataeye)
-        resulthand.append(datahand)
-        if len(dataeye)>maxlen or len(datahand)>maxlen:
-          maxlen=max(len(dataeye), len(datahand))
-      except IOError:
-        print("")
-  return resulteye, resulthand, maxlen
 
 
 """**randeyehandoverlaps** takes random windows of 1/2 the length to be used to train"""
